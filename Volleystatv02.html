@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volley 4x4 - Coaching</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; margin: 0; padding: 10px; color: #333; }
+        h1 { font-size: 1.2em; margin: 0 0 10px 0; text-align: center; }
+        .container { display: flex; flex-direction: column; gap: 10px; }
+        .card { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        
+        /* Boutons de mode */
+        .system-select { display: flex; gap: 8px; margin-bottom: 10px; }
+        .system-btn { flex: 1; padding: 10px; border: 2px solid #0056b3; background: #fff; color: #0056b3; border-radius: 6px; font-weight: bold; font-size: 0.9em; }
+        .system-btn.active { background: #0056b3; color: #fff; }
+
+        /* Terrains */
+        .court-box { display: flex; flex-direction: column; align-items: center; }
+        .net { width: 100%; max-width: 320px; background: #222; color: #fff; text-align: center; font-size: 0.75em; font-weight: bold; padding: 3px 0; border-radius: 4px 4px 0 0; }
+        
+        .court-carre { display: block; width: 100%; max-width: 320px; height: 240px; background: #e0f2fe; border: 3px solid #0056b3; border-top: none; padding: 6px; box-sizing: border-box; position: relative; }
+        .court-w { display: block; width: 100%; max-width: 320px; height: 240px; background: #e0f2fe; border: 3px solid #0056b3; border-top: none; padding: 6px; box-sizing: border-box; position: relative; }
+        
+        /* Elements de terrain calcules sans Grid buggé */
+        .pos-btn { position: absolute; background: #fff; border: 2px dashed #94a3b8; border-radius: 6px; text-align: center; padding: 4px; box-sizing: border-box; cursor: pointer; }
+        .pos-btn.active { border: 3px solid #0056b3; background: #e0e7ff; }
+        .pos-title { font-size: 0.7em; color: #64748b; display: block; }
+        .pos-name { font-size: 1em; font-weight: bold; color: #0056b3; display: block; margin: 2px 0; }
+        .pos-role { font-size: 0.65em; background: #f1f5f9; padding: 1px 4px; border-radius: 3px; color: #334155; }
+
+        /* Actions et Formulaires */
+        .btn-main { width: 100%; padding: 10px; border: none; border-radius: 6px; font-weight: bold; color: #fff; cursor: pointer; margin-top: 5px; }
+        .btn-purple { background: #8b5cf6; }
+        .btn-green { background: #28a745; }
+        .btn-red { background: #dc3545; }
+        .btn-orange { background: #d97706; }
+        .btn-gray { background: #64748b; }
+
+        .action-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+        .action-grid button { flex: 1 1 45%; padding: 8px; border: none; border-radius: 5px; color: #fff; font-weight: bold; font-size: 0.8em; }
+
+        .roster-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .tag { padding: 4px 8px; background: #e2e8f0; border-radius: 12px; font-size: 0.8em; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.75em; }
+        th, td { border: 1px solid #cbd5e1; padding: 4px; text-align: center; }
+        th { background: #f1f5f9; }
+    </style>
+</head>
+<body>
+
+    <h1>Volley 4x4 - Tactique & Stats</h1>
+
+    <div class="container">
+        <!-- MODE SELECTOR -->
+        <div class="system-select">
+            <button id="btn-mode-carre" class="system-btn active" onclick="setMode('carre')">🔲 Système Carré</button>
+            <button id="btn-mode-w" class="system-btn" onclick="setMode('w')">📐 Système en W</button>
+        </div>
+
+        <!-- COURT TERRAIN -->
+        <div class="card court-box">
+            <div class="net">FILET</div>
+            
+            <!-- VUE CARRE -->
+            <div id="view-carre" class="court-carre">
+                <div id="box-c-P4" class="pos-btn" style="top:8px; left:8px; width:145px; height:105px;" onclick="clickSlot('P4')">
+                    <span class="pos-title">P4 (Avant Gauche)</span>
+                    <span id="name-c-P4" class="pos-name">-</span>
+                    <span class="pos-role">Attaque / Bloc</span>
+                </div>
+                <div id="box-c-P2" class="pos-btn" style="top:8px; right:8px; width:145px; height:105px;" onclick="clickSlot('P2')">
+                    <span class="pos-title">P2 (Avant Droit)</span>
+                    <span id="name-c-P2" class="pos-name">-</span>
+                    <span class="pos-role">Passe / Attaque</span>
+                </div>
+                <div id="box-c-P3" class="pos-btn" style="bottom:8px; left:8px; width:145px; height:105px;" onclick="clickSlot('P3')">
+                    <span class="pos-title">P3 (Arrière Gauche)</span>
+                    <span id="name-c-P3" class="pos-name">-</span>
+                    <span class="pos-role">Défense</span>
+                </div>
+                <div id="box-c-P1" class="pos-btn" style="bottom:8px; right:8px; width:145px; height:105px;" onclick="clickSlot('P1')">
+                    <span class="pos-title">P1 (Arrière Droit)</span>
+                    <span id="name-c-P1" class="pos-name">-</span>
+                    <span class="pos-role">Service / Défense</span>
+                </div>
+            </div>
+
+            <!-- VUE W -->
+            <div id="view-w" class="court-w" style="display:none;">
+                <div id="box-w-P2" class="pos-btn" style="top:8px; left:85px; width:145px; height:90px;" onclick="clickSlot('P2')">
+                    <span class="pos-title">P2 (Passeuse)</span>
+                    <span id="name-w-P2" class="pos-name">-</span>
+                    <span class="pos-role" style="background:#e0e7ff;color:#0056b3;">Passe Filet</span>
+                </div>
+                <div id="box-w-P4" class="pos-btn" style="bottom:8px; left:8px; width:95px; height:110px;" onclick="clickSlot('P4')">
+                    <span class="pos-title">P4 (Réc-G)</span>
+                    <span id="name-w-P4" class="pos-name">-</span>
+                    <span class="pos-role">Réception</span>
+                </div>
+                <div id="box-w-P3" class="pos-btn" style="bottom:8px; left:110px; width:95px; height:110px;" onclick="clickSlot('P3')">
+                    <span class="pos-title">P3 (Réc-C)</span>
+                    <span id="name-w-P3" class="pos-name">-</span>
+                    <span class="pos-role">Réception</span>
+                </div>
+                <div id="box-w-P1" class="pos-btn" style="bottom:8px; right:8px; width:95px; height:110px;" onclick="clickSlot('P1')">
+                    <span class="pos-title">P1 (Réc-D)</span>
+                    <span id="name-w-P1" class="pos-name">-</span>
+                    <span class="pos-role">Réception</span>
+                </div>
+            </div>
+
+            <button class="btn-main btn-purple" onclick="doRotation()">🔄 Rotation Horodataire</button>
+        </div>
+
+        <!-- SAISIE STATS -->
+        <div class="card">
+            <div style="font-weight:bold; margin-bottom:8px;">
+                Poste : <span id="lbl-slot" style="color:#0056b3;">P1</span> | 
+                Joueuse : <span id="lbl-player" style="color:#0056b3;">-</span>
+            </div>
+            
+            <div class="action-grid">
+                <button class="btn-green" onclick="addStat('attG')">+ Attaque Pt</button>
+                <button class="btn-green" style="background:#059669;" onclick="addStat('attFeinte')">+ Feinte Pt</button>
+                <button class="btn-red" onclick="addStat('attF')">- Attaque Faute</button>
+                <button class="btn-green" onclick="addStat('srvA')">+ Service Ace</button>
+                <button class="btn-red" onclick="addStat('srvF')">- Service Faute</button>
+                <button class="btn-orange" onclick="addStat('recP')">+ Rec Parfaite</button>
+                <button class="btn-red" onclick="addStat('recM')">- Rec Faute</button>
+                <button class="btn-orange" onclick="addStat('defR')">+ Def Relance</button>
+                <button class="btn-green" onclick="addStat('blocG')">+ Bloc Gagnant</button>
+                <button class="btn-red" onclick="addStat('blocF')">- Bloc Faute</button>
+            </div>
+        </div>
+
+        <!-- EFFECTIF ET CHANGEMENT -->
+        <div class="card">
+            <div style="font-weight:bold; font-size:0.9em; margin-bottom:5px;">Gestion de l'effectif</div>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="txt-new-player" placeholder="Prénom" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+                <button class="btn-green" style="width:auto; padding:6px 12px;" onclick="addNewPlayer()">Ajouter</button>
+            </div>
+
+            <div style="margin-top:10px; background:#f8fafc; padding:8px; border-radius:5px; border:1px solid #e2e8f0;">
+                <div style="font-size:0.8em; font-weight:bold;">Changer la joueuse du poste actif (<span id="lbl-change-slot">P1</span>) :</div>
+                <div style="display:flex; gap:5px; margin-top:5px;">
+                    <select id="sel-sub" style="flex:1; padding:5px; border-radius:4px;"></select>
+                    <button class="btn-orange" style="width:auto; padding:5px 10px;" onclick="applySub()">Remplacer</button>
+                </div>
+            </div>
+
+            <div class="roster-list" id="box-roster"></div>
+        </div>
+
+        <!-- TABLEAU STATS -->
+        <div class="card">
+            <div style="font-weight:bold; font-size:0.9em; margin-bottom:5px;">Tableau des statistiques</div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Attaque (+/F/-)</th>
+                            <th>Service (+/-)</th>
+                            <th>Rec / Def</th>
+                            <th>Bloc (+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbl-stats"></tbody>
+                </table>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn-main btn-gray" onclick="exportData()">📥 Exporter CSV</button>
+                <button class="btn-main btn-red" onclick="clearData()">🗑️ RàZ Tout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DONNEES PAR DEFAUT
+        var defaultPlayers = ["Claire", "Maryline", "Tiphaine", "Sophie", "Lou", "Alexiane"];
+        var players = [];
+        var court = { P1: "Claire", P2: "Maryline", P3: "Tiphaine", P4: "Sophie" };
+        var selectedSlot = "P1";
+        var activeMode = "carre";
+        var stats = {};
+
+        // SAUVEGARDE & CHARGEMENT COMPATIBLE
+        function loadSavedData() {
+            try {
+                var localP = localStorage.getItem('v4_players');
+                var localS = localStorage.getItem('v4_stats');
+                var localC = localStorage.getItem('v4_court');
+                
+                if (localP) { players = JSON.parse(localP); } else { players = defaultPlayers.slice(); }
+                if (localC) { court = JSON.parse(localC); }
+                if (localS) { stats = JSON.parse(localS); }
+            } catch(e) {
+                players = defaultPlayers.slice();
+            }
+            
+            for (var i = 0; i < players.length; i++) {
+                initPlayerStats(players[i]);
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('v4_players', JSON.stringify(players));
+                localStorage.setItem('v4_court', JSON.stringify(court));
+                localStorage.setItem('v4_stats', JSON.stringify(stats));
+            } catch(e) {}
+        }
+
+        function initPlayerStats(name) {
+            if (!stats[name]) {
+                stats[name] = { attG:0, attFeinte:0, attF:0, srvA:0, srvF:0, recP:0, recM:0, defR:0, blocG:0, blocF:0 };
+            }
+        }
+
+        // NAVIGATION & TERRAIN
+        function setMode(mode) {
+            activeMode = mode;
+            var viewCarre = document.getElementById("view-carre");
+            var viewW = document.getElementById("view-w");
+            var btnCarre = document.getElementById("btn-mode-carre");
+            var btnW = document.getElementById("btn-mode-w");
+
+            if (mode === "carre") {
+                viewCarre.style.display = "block";
+                viewW.style.display = "none";
+                btnCarre.className = "system-btn active";
+                btnW.className = "system-btn";
+            } else {
+                viewCarre.style.display = "none";
+                viewW.style.display = "block";
+                btnW.className = "system-btn active";
+                btnCarre.className = "system-btn";
+            }
+            refreshAll();
+        }
+
+        function clickSlot(slot) {
+            selectedSlot = slot;
+            refreshAll();
+        }
+
+        function doRotation() {
+            var temp = court.P1;
+            court.P1 = court.P2;
+            court.P2 = court.P4;
+            court.P4 = court.P3;
+            court.P3 = temp;
+            saveData();
+            refreshAll();
+        }
+
+        // ACTIONS STATISTIQUES
+        function addStat(type) {
+            var currentPlayer = court[selectedSlot];
+            if (!currentPlayer || currentPlayer === "-") {
+                alert("Aucune joueuse attribuée à la position " + selectedSlot);
+                return;
+            }
+            initPlayerStats(currentPlayer);
+            stats[currentPlayer][type] = (stats[currentPlayer][type] || 0) + 1;
+            saveData();
+            renderTable();
+        }
+
+        // GESTION EFFECTIF
+        function addNewPlayer() {
+            var input = document.getElementById("txt-new-player");
+            var name = input.value.replace(/^\s+|\s+$/g, '');
+            if (name !== "") {
+                var exists = false;
+                for (var i = 0; i < players.length; i++) {
+                    if (players[i] === name) exists = true;
+                }
+                if (!exists) {
+                    players.push(name);
+                    initPlayerStats(name);
+                    input.value = "";
+                    saveData();
+                    refreshAll();
+                }
+            }
+        }
+
+        function removePlayer(name) {
+            if (confirm("Supprimer définitivement " + name + " ?")) {
+                var nextPlayers = [];
+                for (var i = 0; i < players.length; i++) {
+                    if (players[i] !== name) nextPlayers.push(players[i]);
+                }
+                players = nextPlayers;
+                delete stats[name];
+                
+                if (court.P1 === name) court.P1 = "-";
+                if (court.P2 === name) court.P2 = "-";
+                if (court.P3 === name) court.P3 = "-";
+                if (court.P4 === name) court.P4 = "-";
+                
+                saveData();
+                refreshAll();
+            }
+        }
+
+        function applySub() {
+            var sel = document.getElementById("sel-sub");
+            var incoming = sel.value;
+            if (incoming !== "") {
+                // Si la joueuse est ailleurs sur le terrain, on la retire
+                if (court.P1 === incoming) court.P1 = "-";
+                if (court.P2 === incoming) court.P2 = "-";
+                if (court.P3 === incoming) court.P3 = "-";
+                if (court.P4 === incoming) court.P4 = "-";
+                
+                court[selectedSlot] = incoming;
+                saveData();
+                refreshAll();
+            }
+        }
+
+        // MISES A JOUR VISUELLES
+        function refreshAll() {
+            // Mettre à jour les prénoms sur le terrain
+            var slots = ["P1", "P2", "P3", "P4"];
+            for (var i = 0; i < slots.length; i++) {
+                var s = slots[i];
+                var nameVal = court[s] || "-";
+                
+                var elC = document.getElementById("name-c-" + s);
+                var elW = document.getElementById("name-w-" + s);
+                if (elC) elC.innerHTML = nameVal;
+                if (elW) elW.innerHTML = nameVal;
+
+                // Highlighting du poste sélectionné
+                var boxC = document.getElementById("box-c-" + s);
+                var boxW = document.getElementById("box-w-" + s);
+                if (boxC) boxC.className = "pos-btn" + (s === selectedSlot ? " active" : "");
+                if (boxW) boxW.className = "pos-btn" + (s === selectedSlot ? " active" : "");
+            }
+
+            // Labels
+            document.getElementById("lbl-slot").innerHTML = selectedSlot;
+            document.getElementById("lbl-change-slot").innerHTML = selectedSlot;
+            document.getElementById("lbl-player").innerHTML = court[selectedSlot] || "-";
+
+            // Roster & Select Remplacement
+            renderRoster();
+            renderTable();
+        }
+
+        function renderRoster() {
+            var box = document.getElementById("box-roster");
+            var sel = document.getElementById("sel-sub");
+            box.innerHTML = "";
+            sel.innerHTML = '<option value="">-- Sélectionner une remplaçante --</option>';
+
+            for (var i = 0; i < players.length; i++) {
+                var p = players[i];
+                var isOnCourt = (court.P1 === p || court.P2 === p || court.P3 === p || court.P4 === p);
+
+                // Badges liste
+                var tag = document.createElement("div");
+                tag.className = "tag";
+                tag.style.opacity = isOnCourt ? "1" : "0.5";
+                tag.innerHTML = p + " " + (isOnCourt ? "🟢" : "⚪") + ' <span style="color:red;cursor:pointer;margin-left:4px;" onclick="removePlayer(\'' + p + '\')">×</span>';
+                box.appendChild(tag);
+
+                // Options du selecteur
+                if (!isOnCourt) {
+                    var opt = document.createElement("option");
+                    opt.value = p;
+                    opt.innerHTML = p;
+                    sel.appendChild(opt);
+                }
+            }
+        }
+
+        function renderTable() {
+            var tbody = document.getElementById("tbl-stats");
+            tbody.innerHTML = "";
+            for (var i = 0; i < players.length; i++) {
+                var p = players[i];
+                var s = stats[p] || { attG:0, attFeinte:0, attF:0, srvA:0, srvF:0, recP:0, recM:0, defR:0, blocG:0, blocF:0 };
+                var tr = document.createElement("tr");
+                tr.innerHTML = "<td><b>" + p + "</b></td>" +
+                    '<td><span style="color:green">+' + s.attG + '</span> / <span style="color:#059669">+' + s.attFeinte + '</span> / <span style="color:red">-' + s.attF + '</span></td>' +
+                    '<td><span style="color:green">+' + s.srvA + '</span> / <span style="color:red">-' + s.srvF + '</span></td>' +
+                    '<td><span style="color:orange">' + s.recP + ' R</span> / <span style="color:blue">' + s.defR + ' D</span></td>' +
+                    '<td><span style="color:green">+' + s.blocG + '</span> / <span style="color:red">-' + s.blocF + '</span></td>';
+                tbody.appendChild(tr);
+            }
+        }
+
+        function exportData() {
+            var csv = "Joueuse,Attaque Frappe,Attaque Feinte,Attaque Faute,Service Ace,Service Faute,Rec Parfaite,Rec Faute,Def Relance,Bloc Gagnant,Bloc Faute\n";
+            for (var i = 0; i < players.length; i++) {
+                var p = players[i];
+                var s = stats[p] || { attG:0, attFeinte:0, attF:0, srvA:0, srvF:0, recP:0, recM:0, defR:0, blocG:0, blocF:0 };
+                csv += p + "," + s.attG + "," + s.attFeinte + "," + s.attF + "," + s.srvA + "," + s.srvF + "," + s.recP + "," + s.recM + "," + s.defR 
