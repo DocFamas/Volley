@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Stats Volley">
 <title>Stats Volley</title>
 <style>
-:root{--bg:#0a0a0a;--pn:#161618;--p2:#1f1f22;--line:#2a2a2d;--or:#f2760c;--od:#3a1d06;--tx:#f5f3ef;--mu:#8b8c90;--ok:#3fb37f;--okd:#1c3a2c;--ko:#e2483c;--kod:#3a1e1b}
+:root{--b:#3aa0ff;--bd:#0f2a44;--bg:#0a0a0a;--pn:#161618;--p2:#1f1f22;--line:#2a2a2d;--or:#f2760c;--od:#3a1d06;--tx:#f5f3ef;--mu:#8b8c90;--ok:#3fb37f;--okd:#1c3a2c;--ko:#e2483c;--kod:#3a1e1b}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 #app{height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
@@ -37,7 +37,7 @@ input[type=text],input[type=date],input[type=number]{flex:1;background:var(--pn)
 .bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .bar .sp{flex:1}
 .score{display:flex;align-items:center;gap:8px;background:var(--pn);border:1px solid var(--line);border-radius:12px;padding:6px 10px}
-.score .n{font-size:26px;font-weight:800;min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+.score .n{font-size:26px;font-weight:800;width:52px;text-align:center;font-variant-numeric:tabular-nums}
 .score .l{font-size:11px;color:var(--mu);font-weight:800;letter-spacing:.08em}
 .score button{background:var(--p2);border:1px solid var(--line);color:var(--tx);width:38px;height:38px;border-radius:9px;font-size:20px;font-weight:800}
 .tag{color:var(--or);font-weight:800;font-size:13px;letter-spacing:.08em}
@@ -68,26 +68,45 @@ tr.tot td{font-weight:800;border-top:2px solid var(--line)}
 .mrow{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}.mrow input[type=text]{min-width:200px}input[type=date]{color-scheme:dark;min-width:0}
 .rl{color:var(--mu);font-size:12px;font-weight:700;display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px}.rl input{width:100%}
 .box .btn small{display:block;font-weight:600;opacity:.8;font-size:12px;margin-top:3px}
+.score .sep{font-size:22px;font-weight:800;color:var(--mu)}
+.bar .tag{flex:1 0 100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cnt{white-space:nowrap;overflow:hidden}
+.tb2{display:flex;gap:6px}.tb2 button{background:var(--p2);border:1px solid var(--line);color:var(--mu);font-weight:800;width:46px;height:38px;border-radius:8px;font-size:15px}
+.tb2 button.on{background:var(--or);border-color:var(--or);color:#1a0d02}
+.hd.ta{border-color:var(--or);color:var(--or)}
+.hd.tb{border-color:var(--b);color:var(--b)}
+.cell.ta{border-color:rgba(242,118,12,.5)}.cell.tb{border-color:rgba(58,160,255,.5)}
+.cell.team.ta{border-color:var(--or)}.cell.team.tb{border-color:var(--b)}
+.chip.selA{border-color:var(--or);background:var(--od)}.chip.selB{border-color:var(--b);background:var(--bd)}
+.tb2 button.on.b{background:var(--b);border-color:var(--b);color:#04121f}
+.score .n.me,.score .l.me{color:var(--or)}.score .n.opp,.score .l.opp{color:var(--b)}
+.score .l.me{width:68px;text-align:center}
+.score .l.opp{width:92px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score button.me{border-color:var(--or)}.score button.opp{border-color:var(--b)}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
+const TEAM = "Viarmes";
 const FUND = [["service","Service"],["reception","Réception"],["attaque","Attaque"],["contre","Contre"],["defense","Défense"]];
 const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
-let S = {roster:[], sessions:[], cur:null, view:"saisie", mode:"match", sel:[], open:null, sub:null, intr:false, m:{opp:"", date:today(), loc:"dom", rules:{pts:25, dec:15, win:3, gap:true}}};
+let S = {roster:[], sessions:[], cur:null, lb:null, view:"saisie", mode:"match", sel:[], open:null, sub:null, intr:false, tm:{}, m:{opp:"", date:today(), loc:"dom", rules:{pts:25, dec:15, win:3, gap:true}}};
 const $ = id => document.getElementById(id);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 function load() {
-  try { const d = JSON.parse(localStorage.getItem("svs") || "{}"); S.roster = d.roster || []; S.sessions = d.sessions || []; S.cur = d.cur || null; } catch (e) {}
+  try { const d = JSON.parse(localStorage.getItem("svs") || "{}"); S.roster = d.roster || []; S.sessions = d.sessions || []; S.cur = d.cur || null; S.lb = d.lb || null; } catch (e) {}
 }
 function save() {
-  try { localStorage.setItem("svs", JSON.stringify({roster:S.roster, sessions:S.sessions, cur:S.cur})); } catch (e) {}
+  try { localStorage.setItem("svs", JSON.stringify({roster:S.roster, sessions:S.sessions, cur:S.cur, lb:S.lb})); } catch (e) {}
 }
 const nm = id => { const p = S.roster.find(p => p.id === id); return p ? p.name : "?"; };
 const cnt = (acts, pid, f) => { let ok = 0, t = 0; for (const a of acts) if ((pid == null || a.p === pid) && a.f === f) { t++; if (a.r === "ok") ok++; } return {ok, t}; };
+const cntF = (acts, fn, f) => { let ok = 0, t = 0; for (const a of acts) if (a.f === f && fn(a.p)) { t++; if (a.r === "ok") ok++; } return {ok, t}; };
+const tmOf = (c, pid) => (c.tm && c.tm[pid]) || "A";
+const hasB = c => !!c.tm && Object.values(c.tm).includes("B");
 const pct = c => c.t ? Math.round(c.ok / c.t * 100) : null;
 const pc = p => p === null ? "" : p >= 70 ? "g" : p >= 40 ? "m" : "b";
 const fmt = c => c.ok + "/" + c.t;
@@ -100,7 +119,7 @@ const setWinner = c => { const r = c.rules || RULES, x = c.sets[c.sets.length - 
 const won = c => tally(setWinner(c) >= 0 ? c.sets : c.sets.slice(0, -1));
 const resTxt = c => { if (c.res) return c.res.kind === "replay" ? "Interrompu · set à rejouer" : (c.res.w === 0 ? "Victoire" : "Défaite") + " au set average"; const w = won(c); return w[0] > w[1] ? "Victoire " + w[0] + "-" + w[1] : w[1] > w[0] ? "Défaite " + w[0] + "-" + w[1] : w[0] + w[1] ? "Égalité " + w[0] + "-" + w[1] : "Aucun set terminé"; };
 const avgResult = c => {
-  const r = c.rules || RULES, who = w => w === 0 ? "Nous" : (c.opp || "Eux");
+  const r = c.rules || RULES, who = w => w === 0 ? TEAM : (c.opp || "Eux");
   if (r.win !== 3) return {err:true, msg:"Set average prévu pour les matchs en 3 sets gagnants."};
   const done = setWinner(c) >= 0 ? c.sets : c.sets.slice(0, -1), n = done.length;
   if (!n) return {err:true, msg:"Aucun set terminé : le match est à remettre."};
@@ -135,7 +154,7 @@ function act(a, d) {
   else if (a === "mode") S.mode = d.m;
   else if (a === "loc") S.m.loc = d.l;
   else if (a === "tsel") { const i = S.sel.indexOf(d.id); i < 0 ? S.sel.push(d.id) : S.sel.splice(i, 1); }
-  else if (a === "start") { if (!S.sel.length) return; S.cur = {id:uid(), date:new Date().toISOString(), mode:S.mode, opp:S.m.opp.trim(), mdate:S.m.date, loc:S.m.loc, rules:{pts:Math.max(1, +S.m.rules.pts || 25), dec:Math.max(1, +S.m.rules.dec || 15), win:S.m.rules.win, gap:S.m.rules.gap}, court:S.sel.slice(0,4), bench:S.sel.slice(4), court0:S.sel.slice(0,4), bench0:S.sel.slice(4), acts:[], sets:[[0,0]]}; S.sel = []; S.m.opp = ""; S.m.date = today(); }
+  else if (a === "start") { const tr = S.mode === "training", ids = tr ? S.roster.map(p => p.id).filter(i => S.tm[i] === "A").concat(S.roster.map(p => p.id).filter(i => S.tm[i] === "B")) : S.sel; if (!ids.length) return; S.cur = {id:uid(), date:new Date().toISOString(), mode:S.mode, opp:S.m.opp.trim(), mdate:S.m.date, loc:S.m.loc, rules:{pts:Math.max(1, +S.m.rules.pts || 25), dec:Math.max(1, +S.m.rules.dec || 15), win:S.m.rules.win, gap:S.m.rules.gap}, court:tr ? ids : ids.slice(0,4), bench:tr ? [] : ids.slice(4), court0:tr ? ids.slice() : ids.slice(0,4), bench0:tr ? [] : ids.slice(4), tm:tr ? Object.assign({}, S.tm) : undefined, acts:[], sets:[[0,0]]}; S.sel = []; S.m.opp = ""; S.m.date = today(); }
   else if (a === "log") c.acts.push({p:d.p, f:d.f, r:d.r, s:c.sets.length});
   else if (a === "undo") c.acts.pop();
   else if (a === "sc") {
@@ -145,6 +164,9 @@ function act(a, d) {
   else if (a === "intr") S.intr = true;
   else if (a === "irep") { c.res = {kind:"replay"}; S.sessions.unshift(c); S.open = c.id; S.cur = null; S.view = "histo"; }
   else if (a === "iavg") { const v = avgResult(c); if (v.err) return; c.res = {kind:"avg", w:v.w, us:v.us, them:v.them}; S.sessions.unshift(c); S.open = c.id; S.cur = null; S.view = "histo"; }
+  else if (a === "exp") { expData(); return; }
+  else if (a === "imp") { pick(d.m); return; }
+  else if (a === "tteam") { if (S.tm[d.id] === d.t) delete S.tm[d.id]; else S.tm[d.id] = d.t; }
   else if (a === "rwin") S.m.rules.win = +d.n;
   else if (a === "rgap") S.m.rules.gap = d.g === "1";
   else if (a === "setok") { if (!S.end) return; if (S.end.m) { S.sessions.unshift(c); S.open = c.id; S.cur = null; S.view = "histo"; } else c.sets.push([0,0]); S.end = null; }
@@ -153,7 +175,7 @@ function act(a, d) {
   else if (a === "nset") { c.sets.push([0,0]); }
   else if (a === "sub") S.sub = +d.i;
   else if (a === "subx") S.sub = null;
-  else if (a === "swap") { const out = c.court[S.sub]; c.court[S.sub] = d.id; c.bench = c.bench.filter(x => x !== d.id); c.bench.push(out); S.sub = null; }
+  else if (a === "swap") { const out = c.court[S.sub]; if (c.tm) c.tm[d.id] = c.tm[out] || "A"; c.court[S.sub] = d.id; c.bench = c.bench.filter(x => x !== d.id); c.bench.push(out); S.sub = null; }
   else if (a === "restart") { if (!confirm("Recommencer à zéro ? Le score et toutes les actions seront effacés (joueuses et adversaire conservés).")) return; c.acts = []; c.sets = [[0,0]]; if (c.court0) { c.court = c.court0.slice(); c.bench = c.bench0.slice(); } S.sub = null; }
   else if (a === "resume") { if (S.cur) { alert("Une séance est déjà en cours : termine-la ou abandonne-la d’abord."); return; } const i = S.sessions.findIndex(x => x.id === d.id); if (i < 0) return; S.cur = S.sessions.splice(i, 1)[0]; S.view = "saisie"; const rs = S.cur.res; if (rs) { if (rs.kind === "replay") { const l = S.cur.sets; if (setWinner(S.cur) < 0) l[l.length - 1] = [0, 0]; S.cur.skip = 0; } delete S.cur.res; } }
   else if (a === "drop") { if (!confirm("Abandonner la séance sans l’enregistrer ?")) return; S.cur = null; S.sub = null; }
@@ -169,7 +191,7 @@ function act(a, d) {
 
 // ---- export
 function rows(ss) {
-  return players(ss).map(pid => [nm(pid)].concat(FUND.map(f => cnt(ss.acts.filter(a => a.p === pid), null, f[0]))));
+  return players(ss).map(pid => [nm(pid) + (hasB(ss) ? " (" + tmOf(ss, pid) + ")" : "")].concat(FUND.map(f => cnt(ss.acts.filter(a => a.p === pid), null, f[0]))));
 }
 function shareTxt(id) {
   const ss = S.sessions.find(x => x.id === id); if (!ss) return;
@@ -189,26 +211,70 @@ function dlCsv(id) {
   a.download = "stats-" + (ss.mdate || ss.date.slice(0, 10)) + (ss.opp ? "-" + ss.opp.replace(/[^a-z0-9]+/gi, "-") : "") + ".csv"; a.click();
 }
 
+// ---- sauvegarde
+function expData() {
+  const name = "sauvegarde-stats-volley-" + today() + ".json";
+  const txt = JSON.stringify({app:"stats-volley", version:1, exportedAt:new Date().toISOString(), roster:S.roster, sessions:S.sessions}, null, 1);
+  const mark = () => { S.lb = new Date().toISOString(); save(); render(); };
+  try {
+    const f = new File([txt], name, {type:"application/json"});
+    if (navigator.canShare && navigator.canShare({files:[f]})) { navigator.share({files:[f], title:name}).then(mark).catch(() => {}); return; }
+  } catch (e) {}
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([txt], {type:"application/json"})); a.download = name; a.click(); mark();
+}
+function pick(mode) {
+  if (S.cur) { alert("Termine ou abandonne la séance en cours avant d’importer."); return; }
+  const i = document.createElement("input"); i.type = "file"; i.accept = ".json,application/json"; i.style.display = "none";
+  i.onchange = () => { const f = i.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { importData(String(r.result), mode); i.remove(); }; r.readAsText(f); };
+  document.body.appendChild(i); i.click();
+}
+function importData(txt, mode) {
+  let d; try { d = JSON.parse(txt); } catch (e) { alert("Fichier illisible."); return; }
+  if (!d || d.app !== "stats-volley" || !Array.isArray(d.roster) || !Array.isArray(d.sessions)) { alert("Ce fichier n’est pas une sauvegarde Stats Volley."); return; }
+  if (mode === "replace") {
+    if (!confirm("Remplacer TOUTES les données de cet appareil par la sauvegarde (" + d.roster.length + " joueuses, " + d.sessions.length + " séances) ?")) return;
+    S.roster = d.roster; S.sessions = d.sessions;
+  } else {
+    const ids = new Set(S.roster.map(p => p.id)), sid = new Set(S.sessions.map(x => x.id));
+    const nr = d.roster.filter(p => !ids.has(p.id)), ns = d.sessions.filter(x => !sid.has(x.id));
+    S.roster = S.roster.concat(nr);
+    S.sessions = S.sessions.concat(ns).sort((a, b) => (b.mdate || b.date).localeCompare(a.mdate || a.date));
+    alert("Fusion terminée : " + nr.length + " joueuse(s) et " + ns.length + " séance(s) ajoutée(s).");
+  }
+  S.sel = []; save(); render();
+}
+function vBackup() {
+  const lb = S.lb ? "Dernière sauvegarde : " + day(S.lb) + " à " + new Date(S.lb).toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"}) + "." : "Aucune sauvegarde pour l’instant.";
+  return "<h2>Sauvegarde</h2><p style='color:var(--mu);font-size:13px;line-height:1.5;margin:0 0 10px'>Exporte un fichier avec ton effectif et ton historique, puis garde-le dans Fichiers / iCloud ou envoie-le-toi par mail. " + lb + "</p><div class='row' style='flex-wrap:wrap'><button class='btn or' data-a='exp'>Exporter la sauvegarde</button><button class='btn gh' data-a='imp' data-m='merge'>Importer · fusionner</button><button class='btn gh' data-a='imp' data-m='replace'>Importer · remplacer tout</button></div><p style='color:var(--mu);font-size:12px;line-height:1.5;margin:10px 0 0'>Fusionner ajoute ce qui manque. Remplacer efface d’abord les données de cet appareil. La séance en cours n’est pas incluse : termine-la avant d’exporter.</p>";
+}
 // ---- vues
 function summary(ss) {
   let h = "<table><tr><th>Joueuse</th>" + FUND.map(f => "<th>" + f[1] + "</th>").join("") + "</tr>";
   rows(ss).forEach(r => {
-    h += "<tr><td><b>" + esc(r[0]) + "</b></td>" + r.slice(1).map(c => { const p = pct(c); return "<td>" + fmt(c) + (p !== null ? " <b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</td>"; }).join("") + "</tr>";
+    h += "<tr><td><b style='color:" + (r[0].endsWith(" (B)") ? "var(--b)" : r[0].endsWith(" (A)") ? "var(--or)" : "inherit") + "'>" + esc(r[0]) + "</b></td>" + r.slice(1).map(c => { const p = pct(c); return "<td>" + fmt(c) + (p !== null ? " <b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</td>"; }).join("") + "</tr>";
   });
-  h += "<tr class='tot'><td>Équipe</td>" + FUND.map(f => { const c = cnt(ss.acts, null, f[0]), p = pct(c); return "<td>" + fmt(c) + (p !== null ? " <b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</td>"; }).join("") + "</tr></table>";
+  const trw = (label, fn) => "<tr class='tot'><td>" + label + "</td>" + FUND.map(f => { const c = cntF(ss.acts, fn, f[0]), p = pct(c); return "<td>" + fmt(c) + (p !== null ? " <b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</td>"; }).join("") + "</tr>";
+  h += (hasB(ss) ? trw("<span style='color:var(--or)'>Équipe A</span>", q => tmOf(ss, q) === "A") + trw("<span style='color:var(--b)'>Équipe B</span>", q => tmOf(ss, q) === "B") : trw("Équipe", () => true)) + "</table>";
   return h;
 }
 function vEquipe() {
   let h = "<h2>Effectif</h2>";
   if (!S.roster.length) h += "<p class='empty'>Ajoute tes joueuses pour commencer.</p>";
   S.roster.forEach(p => h += "<div class='chip'><span>" + esc(p.name) + "</span><button class='x' data-a='rmp' data-id='" + p.id + "'>retirer</button></div>");
-  return h + "<div class='row' style='margin-top:12px'><input type='text' id='np' placeholder='Prénom de la joueuse'><button class='btn or' data-a='addp'>Ajouter</button></div>";
+  return h + "<div class='row' style='margin-top:12px'><input type='text' id='np' placeholder='Prénom de la joueuse'><button class='btn or' data-a='addp'>Ajouter</button></div>" + vBackup();
 }
 function vSetup() {
   if (!S.roster.length) return "<p class='empty'>Ajoute d’abord tes joueuses dans l’onglet <b>Équipe</b>.</p>";
   let h = "<h2>Type de séance</h2><div class='seg'><button class='" + (S.mode === "match" ? "on" : "") + "' data-a='mode' data-m='match'>Match</button><button class='" + (S.mode === "training" ? "on" : "") + "' data-a='mode' data-m='training'>Entraînement</button></div>";
   if (S.mode === "match") h += "<h2>Le match</h2><div class='mrow'><input type='text' id='opp' placeholder='Équipe adverse' value='" + esc(S.m.opp) + "'><input type='date' id='md' value='" + S.m.date + "'></div><div class='seg'><button class='" + (S.m.loc === "dom" ? "on" : "") + "' data-a='loc' data-l='dom'>Domicile</button><button class='" + (S.m.loc === "ext" ? "on" : "") + "' data-a='loc' data-l='ext'>Extérieur</button></div>";
   if (S.mode === "match") { const R = S.m.rules; h += "<h2>Règles du match</h2><div class='mrow'><label class='rl'>Points par set<input type='number' id='rp' min='1' value='" + R.pts + "'></label><label class='rl'>Set décisif<input type='number' id='rd' min='1' value='" + R.dec + "'></label></div><div class='seg' style='margin-bottom:8px'><button class='" + (R.win === 2 ? "on" : "") + "' data-a='rwin' data-n='2'>2 sets gagnants</button><button class='" + (R.win === 3 ? "on" : "") + "' data-a='rwin' data-n='3'>3 sets gagnants</button></div><div class='seg'><button class='" + (R.gap ? "on" : "") + "' data-a='rgap' data-g='1'>2 points d’écart</button><button class='" + (!R.gap ? "on" : "") + "' data-a='rgap' data-g='0'>Sans écart</button></div>"; }
+  if (S.mode === "training") {
+    h += "<h2>Joueuses présentes · A et B si deux équipes s’affrontent</h2>";
+    S.roster.forEach(p => { const t = S.tm[p.id]; h += "<div class='chip " + (t ? "sel" + t : "") + "'><span>" + esc(p.name) + "</span><span class='tb2'><button class='" + (t === "A" ? "on" : "") + "' data-a='tteam' data-id='" + p.id + "' data-t='A'>A</button><button class='" + (t === "B" ? "on b" : "") + "' data-a='tteam' data-id='" + p.id + "' data-t='B'>B</button></span></div>"; });
+    const nt = Object.keys(S.tm).length;
+    return h + "<button class='btn or' style='margin-top:10px;width:100%' data-a='start' " + (nt ? "" : "disabled") + ">Démarrer la saisie (" + nt + ")</button>";
+  }
   h += "<h2>Joueuses présentes · les 4 premières touchées démarrent, les autres sont au banc</h2>";
   S.roster.forEach(p => {
     const i = S.sel.indexOf(p.id);
@@ -219,19 +285,20 @@ function vSetup() {
 function vGrid() {
   const c = S.cur, set = c.sets[c.sets.length - 1], n = c.court.length;
   let h = "<div class='bar'><span class='tag'>" + (c.mode === "match" ? "MATCH" + (c.opp ? " · " + esc(c.opp.toUpperCase()) : "") + " · " + LOC(c.loc).toUpperCase() + " · SET " + c.sets.length + " · À " + target(c) : "ENTRAÎNEMENT") + "</span>";
-  if (c.mode === "match") h += "<div class='score'><span class='l'>NOUS</span><button data-a='sc' data-side='0' data-d='-1'>−</button><span class='n'>" + set[0] + "</span><button data-a='sc' data-side='0' data-d='1'>+</button><span class='n'>:</span><button data-a='sc' data-side='1' data-d='-1'>−</button><span class='n'>" + set[1] + "</span><button data-a='sc' data-side='1' data-d='1'>+</button><span class='l'>EUX</span></div><button class='btn gh' data-a='nset'>Set suivant</button>";
+  if (c.mode === "match") h += "<div class='score'><span class='l me'>" + esc(TEAM.toUpperCase()) + "</span><button class='me' data-a='sc' data-side='0' data-d='-1'>−</button><span class='n me'>" + set[0] + "</span><button class='me' data-a='sc' data-side='0' data-d='1'>+</button><span class='sep'>:</span><button class='opp' data-a='sc' data-side='1' data-d='-1'>−</button><span class='n opp'>" + set[1] + "</span><button class='opp' data-a='sc' data-side='1' data-d='1'>+</button><span class='l opp'>" + esc((c.opp || "EUX").toUpperCase()) + "</span></div><button class='btn gh' data-a='nset'>Set suivant</button>";
   h += "<span class='sp'></span><button class='btn gh' data-a='undo' " + (c.acts.length ? "" : "disabled") + ">↶ Annuler</button>" + (c.mode === "match" ? "<button class='btn gh' data-a='intr'>⏱ Interrompre</button>" : "") + "<button class='btn gh' data-a='restart' title='Recommencer à zéro'>↻ Recommencer</button><button class='btn gh' data-a='drop' title='Abandonner sans enregistrer'>✕</button><button class='btn or' data-a='end'>Terminer</button></div>";
-  h += "<div class='grid' style='grid-template-columns:110px repeat(" + n + ",1fr) 96px'><div></div>";
-  c.court.forEach((pid, i) => h += "<button class='hd' data-a='sub' data-i='" + i + "'>" + esc(nm(pid)) + " ⇄</button>");
-  h += "<div class='hd t'>ÉQUIPE</div>";
+  const two = hasB(c);
+  h += "<div class='grid' style='grid-template-columns:110px repeat(" + n + ",minmax(" + (n > 4 ? 88 : 0) + "px,1fr)) repeat(" + (two ? 2 : 1) + ",96px)'><div></div>";
+  c.court.forEach((pid, i) => h += "<button class='hd" + (two ? (tmOf(c, pid) === "B" ? " tb" : " ta") : "") + "' data-a='sub' data-i='" + i + "'>" + esc(nm(pid)) + " ⇄</button>");
+  h += two ? "<div class='hd t ta'>ÉQ. A</div><div class='hd t tb'>ÉQ. B</div>" : "<div class='hd t'>ÉQUIPE</div>";
   FUND.forEach(f => {
     h += "<div class='fl'>" + f[1] + "</div>";
     c.court.forEach(pid => {
       const k = cnt(c.acts, pid, f[0]), p = pct(k);
-      h += "<div class='cell'><div class='cnt'>" + fmt(k) + (p !== null ? "<b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</div><div class='bt'><button class='ok' data-a='log' data-p='" + pid + "' data-f='" + f[0] + "' data-r='ok'>✓</button><button class='ko' data-a='log' data-p='" + pid + "' data-f='" + f[0] + "' data-r='ko'>✗</button></div></div>";
+      h += "<div class='cell" + (two ? (tmOf(c, pid) === "B" ? " tb" : " ta") : "") + "'><div class='cnt'>" + fmt(k) + (p !== null ? "<b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</div><div class='bt'><button class='ok' data-a='log' data-p='" + pid + "' data-f='" + f[0] + "' data-r='ok'>✓</button><button class='ko' data-a='log' data-p='" + pid + "' data-f='" + f[0] + "' data-r='ko'>✗</button></div></div>";
     });
-    const k = cnt(c.acts, null, f[0]), p = pct(k);
-    h += "<div class='cell team'><div class='cnt'>" + fmt(k) + (p !== null ? "<b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</div></div>";
+    const tot = (fn, cl) => { const k = cntF(c.acts, fn, f[0]), p = pct(k); return "<div class='cell team " + (cl || "") + "'><div class='cnt'>" + fmt(k) + (p !== null ? "<b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</div></div>"; };
+    h += two ? tot(q => tmOf(c, q) === "A", "ta") + tot(q => tmOf(c, q) === "B", "tb") : tot(() => true);
   });
   h += "</div>";
   if (S.sub !== null) {
@@ -242,8 +309,8 @@ function vGrid() {
     h += "<button class='btn gh' style='width:100%' data-a='subx'>Annuler</button></div></div>";
   }
   if (S.end) {
-    const x = c.sets[c.sets.length - 1], who = S.end.w === 0 ? "Nous" : (c.opp || "Eux");
-    h += "<div class='modal'><div class='box'><h3>" + (S.end.m ? "Match terminé" : "Set terminé") + "</h3><p>" + (S.end.m ? esc(resTxt(c)) + " · " + scoreTxt(c) + cpTxt(c) : esc(who) + " gagne le set " + x[0] + "-" + x[1]) + "</p><button class='btn or' style='width:100%;margin-bottom:8px' data-a='setok'>" + (S.end.m ? "Valider et enregistrer" : "Valider · set suivant") + "</button><button class='btn gh' style='width:100%;margin-bottom:8px' data-a='setx'>Pas encore</button><button class='btn gh' style='width:100%' data-a='setskip'>Ne plus demander pour ce set</button></div></div>";
+    const x = c.sets[c.sets.length - 1], who = S.end.w === 0 ? TEAM : (c.opp || "Eux");
+    h += "<div class='modal'><div class='box'><h3>" + (S.end.m ? "Match terminé" : "Set terminé") + "</h3><p>" + (S.end.m ? esc(resTxt(c)) + " · " + scoreTxt(c) + cpTxt(c) : "<b style='color:" + (S.end.w === 0 ? "var(--or)" : "var(--b)") + "'>" + esc(who) + "</b> gagne le set " + x[0] + "-" + x[1]) + "</p><button class='btn or' style='width:100%;margin-bottom:8px' data-a='setok'>" + (S.end.m ? "Valider et enregistrer" : "Valider · set suivant") + "</button><button class='btn gh' style='width:100%;margin-bottom:8px' data-a='setx'>Pas encore</button><button class='btn gh' style='width:100%' data-a='setskip'>Ne plus demander pour ce set</button></div></div>";
   }
   if (S.intr) {
     const v = avgResult(c);
@@ -256,16 +323,21 @@ function vGrid() {
 }
 function vHisto() {
   if (!S.sessions.length) return "<p class='empty'>Aucune séance enregistrée.</p>";
-  return S.sessions.map(ss => {
+  const nb = S.sessions.filter(x => !S.lb || x.date > S.lb).length;
+  const ban = nb ? "<div class='hist' style='border-color:var(--or)'>" + nb + " séance" + (nb > 1 ? "s" : "") + " pas encore sauvegardée" + (nb > 1 ? "s" : "") + ". Va dans l’onglet Équipe pour exporter la sauvegarde.</div>" : "";
+  return ban + S.sessions.map(ss => {
     let h = "<div class='hist'><div data-a='open' data-id='" + ss.id + "'><div class='top'><b>" + day(ss.mdate || ss.date) + "</b><span class='tag'>" + (ss.mode === "match" ? "MATCH" : "ENTRAÎNEMENT") + "</span></div><div class='meta'>" + (ss.mode === "match" ? esc(ttl(ss)) + " · " + resTxt(ss) + " · Sets : " + scoreTxt(ss) + cpTxt(ss) + " · " : "") + players(ss).length + " joueuses · " + ss.acts.length + " actions</div></div>";
     if (S.open === ss.id) h += "<div style='margin-top:12px;overflow-x:auto'>" + summary(ss) + "</div><div class='acts'><button class='btn or' data-a='share' data-id='" + ss.id + "'>Partager / copier</button><button class='btn gh' data-a='csv' data-id='" + ss.id + "'>Export CSV</button><button class='btn gh' data-a='resume' data-id='" + ss.id + "'>" + (ss.res && ss.res.kind === "replay" ? "Reprendre pour rejouer le set" : "Reprendre la saisie") + "</button><button class='btn gh' style='color:var(--ko)' data-a='del' data-id='" + ss.id + "'>Supprimer</button></div>";
     return h + "</div>";
   }).join("");
 }
 function render() {
+  const mo = document.querySelector("main"), top = mo ? mo.scrollTop : 0, lf = mo ? mo.scrollLeft : 0, key = S.view + (S.cur ? 1 : 0), keep = S._k === key;
+  S._k = key;
   const nav = [["saisie","Saisie"],["equipe","Équipe"],["histo","Historique"]];
   $("app").innerHTML = "<header><div class='brand'>STATS<span>·</span>VOLLEY</div><nav>" + nav.map(n => "<button class='" + (S.view === n[0] ? "on" : "") + "' data-a='nav' data-v='" + n[0] + "'>" + n[1] + "</button>").join("") + "</nav></header><main>" +
     (S.view === "equipe" ? vEquipe() : S.view === "histo" ? vHisto() : S.cur ? vGrid() : vSetup()) + "</main>";
+  const mn = document.querySelector("main"); if (mn && keep) { mn.scrollTop = top; mn.scrollLeft = lf; }
 }
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-a]");
