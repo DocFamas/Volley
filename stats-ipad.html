@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stats Volley">
+<title>Stats Volley</title>
+<style>
+:root{--bg:#0a0a0a;--pn:#161618;--p2:#1f1f22;--line:#2a2a2d;--or:#f2760c;--od:#3a1d06;--tx:#f5f3ef;--mu:#8b8c90;--ok:#3fb37f;--okd:#1c3a2c;--ko:#e2483c;--kod:#3a1e1b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+#app{height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line)}
+.brand{font-weight:800;font-size:18px;letter-spacing:.03em}.brand span{color:var(--or)}
+nav{display:flex;gap:6px}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+nav button{background:none;border:1px solid var(--line);color:var(--mu);font-weight:700;font-size:14px;padding:9px 14px;border-radius:9px}
+nav button.on{background:var(--od);border-color:var(--or);color:var(--or)}
+main{flex:1;min-height:0;display:flex;flex-direction:column;padding:12px 16px;overflow:auto}
+h2{font-size:12px;letter-spacing:.1em;color:var(--mu);margin:14px 0 8px;text-transform:uppercase}
+.empty{color:var(--mu);text-align:center;padding:40px 16px;line-height:1.6}
+.row{display:flex;gap:8px}
+input[type=text],input[type=date],input[type=number]{flex:1;background:var(--pn);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:13px;font-size:17px;-webkit-user-select:text;user-select:text}
+.btn{border:none;border-radius:10px;padding:13px 18px;font-size:15px;font-weight:800}
+.or{background:var(--or);color:#1a0d02}.gh{background:var(--p2);color:var(--tx);border:1px solid var(--line)}
+.btn:disabled{opacity:.35}
+.chip{display:flex;align-items:center;justify-content:space-between;background:var(--pn);border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:8px;font-weight:700;font-size:16px}
+.chip.sel{border-color:var(--or);background:var(--od)}
+.chip .x{background:none;border:none;color:var(--ko);font-weight:700;font-size:14px}
+.badge{background:var(--or);color:#1a0d02;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:800}
+.badge.b{background:var(--p2);color:var(--mu)}
+.seg{display:flex;gap:8px}.seg button{flex:1;background:var(--pn);border:1px solid var(--line);color:var(--mu);font-weight:800;font-size:15px;padding:14px;border-radius:10px}
+.seg button.on{background:var(--od);border-color:var(--or);color:var(--or)}
+/* barre + grille */
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.bar .sp{flex:1}
+.score{display:flex;align-items:center;gap:8px;background:var(--pn);border:1px solid var(--line);border-radius:12px;padding:6px 10px}
+.score .n{font-size:26px;font-weight:800;min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+.score .l{font-size:11px;color:var(--mu);font-weight:800;letter-spacing:.08em}
+.score button{background:var(--p2);border:1px solid var(--line);color:var(--tx);width:38px;height:38px;border-radius:9px;font-size:20px;font-weight:800}
+.tag{color:var(--or);font-weight:800;font-size:13px;letter-spacing:.08em}
+.grid{flex:1;min-height:340px;display:grid;gap:8px;grid-template-rows:auto repeat(5,1fr)}
+.hd{background:var(--p2);border:1px solid var(--line);color:var(--tx);border-radius:10px;font-weight:800;font-size:16px;padding:10px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hd.t{background:none;border:none;color:var(--mu);font-size:13px;text-align:center}
+.fl{display:flex;align-items:center;font-weight:800;font-size:15px}
+.cell{background:var(--pn);border:1px solid var(--line);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px}
+.cell.team{background:none;border-style:dashed;justify-content:center}
+.cnt{text-align:center;font-size:13px;color:var(--mu);font-weight:700;font-variant-numeric:tabular-nums}
+.cnt b{margin-left:4px}.g{color:var(--ok)}.m{color:var(--or)}.b{color:var(--ko)}
+.bt{flex:1;display:flex;gap:6px}
+.bt button{flex:1;border:none;border-radius:9px;font-size:26px;font-weight:800;min-height:48px}
+.bt .ok{background:var(--okd);color:var(--ok)}.bt .ko{background:var(--kod);color:var(--ko)}
+.bt button:active{transform:scale(.95)}
+/* résumé */
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th{color:var(--mu);text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);font-size:12px}
+td{padding:9px 6px;border-bottom:1px solid var(--line)}
+tr.tot td{font-weight:800;border-top:2px solid var(--line)}
+.hist{background:var(--pn);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.hist .top{display:flex;justify-content:space-between;gap:8px}
+.hist .meta{color:var(--mu);font-size:13px;margin-top:3px}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
+.box{background:var(--pn);border:1px solid var(--line);border-radius:14px;padding:16px;width:100%;max-width:380px}
+.box h3{margin:0 0 4px}.box p{color:var(--mu);font-size:13px;margin:0 0 12px}
+.mrow{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}.mrow input[type=text]{min-width:200px}input[type=date]{color-scheme:dark;min-width:0}
+.rl{color:var(--mu);font-size:12px;font-weight:700;display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px}.rl input{width:100%}
+.box .btn small{display:block;font-weight:600;opacity:.8;font-size:12px;margin-top:3px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const FUND = [["service","Service"],["reception","Réception"],["attaque","Attaque"],["contre","Contre"],["defense","Défense"]];
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+let S = {roster:[], sessions:[], cur:null, view:"saisie", mode:"match", sel:[], open:null, sub:null, intr:false, m:{opp:"", date:today(), loc:"dom", rules:{pts:25, dec:15, win:3, gap:true}}};
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function load() {
+  try { const d = JSON.parse(localStorage.getItem("svs") || "{}"); S.roster = d.roster || []; S.sessions = d.sessions || []; S.cur = d.cur || null; } catch (e) {}
+}
+function save() {
+  try { localStorage.setItem("svs", JSON.stringify({roster:S.roster, sessions:S.sessions, cur:S.cur})); } catch (e) {}
+}
+const nm = id => { const p = S.roster.find(p => p.id === id); return p ? p.name : "?"; };
+const cnt = (acts, pid, f) => { let ok = 0, t = 0; for (const a of acts) if ((pid == null || a.p === pid) && a.f === f) { t++; if (a.r === "ok") ok++; } return {ok, t}; };
+const pct = c => c.t ? Math.round(c.ok / c.t * 100) : null;
+const pc = p => p === null ? "" : p >= 70 ? "g" : p >= 40 ? "m" : "b";
+const fmt = c => c.ok + "/" + c.t;
+const day = iso => new Date(iso.length === 10 ? iso + "T12:00:00" : iso).toLocaleDateString("fr-FR", {weekday:"short", day:"numeric", month:"short"});
+const players = ss => ss.court.concat(ss.bench);
+const RULES = {pts:25, dec:15, win:3, gap:true};
+const tally = ss => { let a = 0, b = 0; ss.forEach(x => { if (x[0] > x[1]) a++; else if (x[1] > x[0]) b++; }); return [a, b]; };
+const target = c => { const r = c.rules || RULES, w = tally(c.sets.slice(0, -1)); return w[0] === r.win - 1 && w[1] === r.win - 1 ? r.dec : r.pts; };
+const setWinner = c => { const r = c.rules || RULES, x = c.sets[c.sets.length - 1], t = target(c), hi = Math.max(x[0], x[1]), lo = Math.min(x[0], x[1]); return hi >= t && (!r.gap || hi - lo >= 2) ? (x[0] > x[1] ? 0 : 1) : -1; };
+const won = c => tally(setWinner(c) >= 0 ? c.sets : c.sets.slice(0, -1));
+const resTxt = c => { if (c.res) return c.res.kind === "replay" ? "Interrompu · set à rejouer" : (c.res.w === 0 ? "Victoire" : "Défaite") + " au set average"; const w = won(c); return w[0] > w[1] ? "Victoire " + w[0] + "-" + w[1] : w[1] > w[0] ? "Défaite " + w[0] + "-" + w[1] : w[0] + w[1] ? "Égalité " + w[0] + "-" + w[1] : "Aucun set terminé"; };
+const avgResult = c => {
+  const r = c.rules || RULES, who = w => w === 0 ? "Nous" : (c.opp || "Eux");
+  if (r.win !== 3) return {err:true, msg:"Set average prévu pour les matchs en 3 sets gagnants."};
+  const done = setWinner(c) >= 0 ? c.sets : c.sets.slice(0, -1), n = done.length;
+  if (!n) return {err:true, msg:"Aucun set terminé : le match est à remettre."};
+  const t = tally(done), x = c.sets[c.sets.length - 1];
+  if (n % 2 === 1) {
+    if (t[0] === t[1]) return {err:true, msg:"Sets terminés incohérents : vérifie les scores."};
+    const w = t[0] > t[1] ? 0 : 1;
+    return {w, us:w === 0 ? 3 : 0, them:w === 0 ? 0 : 3, msg:who(w) + " gagne aux sets (" + Math.max(t[0], t[1]) + "-" + Math.min(t[0], t[1]) + ") · classement " + (w === 0 ? "3-0" : "0-3")};
+  }
+  if (t[0] !== t[1]) return {err:true, msg:"Cas non prévu par le règlement (" + t[0] + "-" + t[1] + " en sets) : à trancher avec l’adversaire ou la commission."};
+  if (x[0] === x[1]) return {err:true, msg:"Égalité dans le dernier set (" + x[0] + "-" + x[1] + ") : le règlement ne tranche pas."};
+  const w = x[0] > x[1] ? 0 : 1;
+  return {w, us:w === 0 ? 2 : 1, them:w === 0 ? 1 : 2, msg:who(w) + " mène au dernier set (" + x[0] + "-" + x[1] + ") · classement " + (w === 0 ? "2-1" : "1-2")};
+};
+const cpts = c => {
+  if (c.res) return c.res.kind === "avg" ? {us:c.res.us, them:c.res.them} : null;
+  const r = c.rules || RULES; if (c.mode !== "match" || r.win !== 3) return null;
+  const w = won(c); if (Math.max(w[0], w[1]) < 3) return null;
+  const low = Math.min(w[0], w[1]), wp = low === 2 ? 2 : 3, lp = low === 2 ? 1 : 0;
+  return w[0] > w[1] ? {us:wp, them:lp} : {us:lp, them:wp};
+};
+const cpTxt = c => { const q = cpts(c); return q ? " · Classement " + q.us + "-" + q.them : ""; };
+const LOC = l => l === "ext" ? "Extérieur" : "Domicile";
+const ttl = ss => ss.mode === "match" ? (ss.opp ? "vs " + ss.opp : "Match") + " · " + LOC(ss.loc) : "Entraînement";
+const scoreTxt = ss => ss.mode === "match" ? ss.sets.map(s => s[0] + "-" + s[1]).join(" · ") : "Entraînement";
+
+// ---- actions
+function act(a, d) {
+  const c = S.cur;
+  if (!["sc", "setok", "setx", "setskip"].includes(a)) { S.end = null; S.intr = false; }
+  if (a === "nav") { S.view = d.v; S.sub = null; }
+  else if (a === "mode") S.mode = d.m;
+  else if (a === "loc") S.m.loc = d.l;
+  else if (a === "tsel") { const i = S.sel.indexOf(d.id); i < 0 ? S.sel.push(d.id) : S.sel.splice(i, 1); }
+  else if (a === "start") { if (!S.sel.length) return; S.cur = {id:uid(), date:new Date().toISOString(), mode:S.mode, opp:S.m.opp.trim(), mdate:S.m.date, loc:S.m.loc, rules:{pts:Math.max(1, +S.m.rules.pts || 25), dec:Math.max(1, +S.m.rules.dec || 15), win:S.m.rules.win, gap:S.m.rules.gap}, court:S.sel.slice(0,4), bench:S.sel.slice(4), court0:S.sel.slice(0,4), bench0:S.sel.slice(4), acts:[], sets:[[0,0]]}; S.sel = []; S.m.opp = ""; S.m.date = today(); }
+  else if (a === "log") c.acts.push({p:d.p, f:d.f, r:d.r, s:c.sets.length});
+  else if (a === "undo") c.acts.pop();
+  else if (a === "sc") {
+    const x = c.sets[c.sets.length-1]; x[+d.side] = Math.max(0, x[+d.side] + +d.d);
+    if (c.mode === "match" && +d.d > 0 && c.skip !== c.sets.length) { const w = setWinner(c); if (w >= 0) { const t = won(c), r = c.rules || RULES; S.end = {w, m:t[0] >= r.win || t[1] >= r.win}; } }
+  }
+  else if (a === "intr") S.intr = true;
+  else if (a === "irep") { c.res = {kind:"replay"}; S.sessions.unshift(c); S.open = c.id; S.cur = null; S.view = "histo"; }
+  else if (a === "iavg") { const v = avgResult(c); if (v.err) return; c.res = {kind:"avg", w:v.w, us:v.us, them:v.them}; S.sessions.unshift(c); S.open = c.id; S.cur = null; S.view = "histo"; }
+  else if (a === "rwin") S.m.rules.win = +d.n;
+  else if (a === "rgap") S.m.rules.gap = d.g === "1";
+  else if (a === "setok") { if (!S.end) return; if (S.end.m) { S.sessions.unshift(c); S.open = c.id; S.cur = null; S.view = "histo"; } else c.sets.push([0,0]); S.end = null; }
+  else if (a === "setx") S.end = null;
+  else if (a === "setskip") { c.skip = c.sets.length; S.end = null; }
+  else if (a === "nset") { c.sets.push([0,0]); }
+  else if (a === "sub") S.sub = +d.i;
+  else if (a === "subx") S.sub = null;
+  else if (a === "swap") { const out = c.court[S.sub]; c.court[S.sub] = d.id; c.bench = c.bench.filter(x => x !== d.id); c.bench.push(out); S.sub = null; }
+  else if (a === "restart") { if (!confirm("Recommencer à zéro ? Le score et toutes les actions seront effacés (joueuses et adversaire conservés).")) return; c.acts = []; c.sets = [[0,0]]; if (c.court0) { c.court = c.court0.slice(); c.bench = c.bench0.slice(); } S.sub = null; }
+  else if (a === "resume") { if (S.cur) { alert("Une séance est déjà en cours : termine-la ou abandonne-la d’abord."); return; } const i = S.sessions.findIndex(x => x.id === d.id); if (i < 0) return; S.cur = S.sessions.splice(i, 1)[0]; S.view = "saisie"; const rs = S.cur.res; if (rs) { if (rs.kind === "replay") { const l = S.cur.sets; if (setWinner(S.cur) < 0) l[l.length - 1] = [0, 0]; S.cur.skip = 0; } delete S.cur.res; } }
+  else if (a === "drop") { if (!confirm("Abandonner la séance sans l’enregistrer ?")) return; S.cur = null; S.sub = null; }
+  else if (a === "end") { if (!confirm("Terminer et enregistrer la séance ?")) return; S.sessions.unshift(c); S.open = c.id; S.cur = null; S.view = "histo"; }
+  else if (a === "open") S.open = S.open === d.id ? null : d.id;
+  else if (a === "del") { if (!confirm("Supprimer cette séance ?")) return; S.sessions = S.sessions.filter(x => x.id !== d.id); }
+  else if (a === "rmp") { if (!confirm("Retirer cette joueuse de l’effectif ?")) return; S.roster = S.roster.filter(p => p.id !== d.id); S.sel = S.sel.filter(x => x !== d.id); }
+  else if (a === "addp") { const i = $("np"); const v = i.value.trim(); if (!v) return; S.roster.push({id:uid(), name:v}); }
+  else if (a === "share") shareTxt(d.id);
+  else if (a === "csv") dlCsv(d.id);
+  save(); render();
+}
+
+// ---- export
+function rows(ss) {
+  return players(ss).map(pid => [nm(pid)].concat(FUND.map(f => cnt(ss.acts.filter(a => a.p === pid), null, f[0]))));
+}
+function shareTxt(id) {
+  const ss = S.sessions.find(x => x.id === id); if (!ss) return;
+  let t = ttl(ss) + " du " + day(ss.mdate || ss.date) + (ss.mode === "match" ? " : " + resTxt(ss) + " (" + scoreTxt(ss) + ")" + cpTxt(ss) : "") + "\n";
+  rows(ss).forEach(r => { t += r[0] + " — " + FUND.map((f, i) => f[1] + " " + fmt(r[i+1]) + (pct(r[i+1]) !== null ? " (" + pct(r[i+1]) + "%)" : "")).join(", ") + "\n"; });
+  if (navigator.share) { navigator.share({text: t}).catch(() => {}); return; }
+  const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); alert("Résumé copié."); } catch (e) {}
+  ta.remove();
+}
+function dlCsv(id) {
+  const ss = S.sessions.find(x => x.id === id); if (!ss) return;
+  let t = "Joueuse;" + FUND.map(f => f[1] + " réussi;" + f[1] + " total").join(";") + "\n";
+  rows(ss).forEach(r => { t += r[0] + ";" + r.slice(1).map(c => c.ok + ";" + c.t).join(";") + "\n"; });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff" + t], {type:"text/csv"}));
+  a.download = "stats-" + (ss.mdate || ss.date.slice(0, 10)) + (ss.opp ? "-" + ss.opp.replace(/[^a-z0-9]+/gi, "-") : "") + ".csv"; a.click();
+}
+
+// ---- vues
+function summary(ss) {
+  let h = "<table><tr><th>Joueuse</th>" + FUND.map(f => "<th>" + f[1] + "</th>").join("") + "</tr>";
+  rows(ss).forEach(r => {
+    h += "<tr><td><b>" + esc(r[0]) + "</b></td>" + r.slice(1).map(c => { const p = pct(c); return "<td>" + fmt(c) + (p !== null ? " <b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</td>"; }).join("") + "</tr>";
+  });
+  h += "<tr class='tot'><td>Équipe</td>" + FUND.map(f => { const c = cnt(ss.acts, null, f[0]), p = pct(c); return "<td>" + fmt(c) + (p !== null ? " <b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</td>"; }).join("") + "</tr></table>";
+  return h;
+}
+function vEquipe() {
+  let h = "<h2>Effectif</h2>";
+  if (!S.roster.length) h += "<p class='empty'>Ajoute tes joueuses pour commencer.</p>";
+  S.roster.forEach(p => h += "<div class='chip'><span>" + esc(p.name) + "</span><button class='x' data-a='rmp' data-id='" + p.id + "'>retirer</button></div>");
+  return h + "<div class='row' style='margin-top:12px'><input type='text' id='np' placeholder='Prénom de la joueuse'><button class='btn or' data-a='addp'>Ajouter</button></div>";
+}
+function vSetup() {
+  if (!S.roster.length) return "<p class='empty'>Ajoute d’abord tes joueuses dans l’onglet <b>Équipe</b>.</p>";
+  let h = "<h2>Type de séance</h2><div class='seg'><button class='" + (S.mode === "match" ? "on" : "") + "' data-a='mode' data-m='match'>Match</button><button class='" + (S.mode === "training" ? "on" : "") + "' data-a='mode' data-m='training'>Entraînement</button></div>";
+  if (S.mode === "match") h += "<h2>Le match</h2><div class='mrow'><input type='text' id='opp' placeholder='Équipe adverse' value='" + esc(S.m.opp) + "'><input type='date' id='md' value='" + S.m.date + "'></div><div class='seg'><button class='" + (S.m.loc === "dom" ? "on" : "") + "' data-a='loc' data-l='dom'>Domicile</button><button class='" + (S.m.loc === "ext" ? "on" : "") + "' data-a='loc' data-l='ext'>Extérieur</button></div>";
+  if (S.mode === "match") { const R = S.m.rules; h += "<h2>Règles du match</h2><div class='mrow'><label class='rl'>Points par set<input type='number' id='rp' min='1' value='" + R.pts + "'></label><label class='rl'>Set décisif<input type='number' id='rd' min='1' value='" + R.dec + "'></label></div><div class='seg' style='margin-bottom:8px'><button class='" + (R.win === 2 ? "on" : "") + "' data-a='rwin' data-n='2'>2 sets gagnants</button><button class='" + (R.win === 3 ? "on" : "") + "' data-a='rwin' data-n='3'>3 sets gagnants</button></div><div class='seg'><button class='" + (R.gap ? "on" : "") + "' data-a='rgap' data-g='1'>2 points d’écart</button><button class='" + (!R.gap ? "on" : "") + "' data-a='rgap' data-g='0'>Sans écart</button></div>"; }
+  h += "<h2>Joueuses présentes · les 4 premières touchées démarrent, les autres sont au banc</h2>";
+  S.roster.forEach(p => {
+    const i = S.sel.indexOf(p.id);
+    h += "<div class='chip " + (i >= 0 ? "sel" : "") + "' data-a='tsel' data-id='" + p.id + "'><span>" + esc(p.name) + "</span>" + (i >= 0 ? (i < 4 ? "<span class='badge'>Terrain " + (i+1) + "</span>" : "<span class='badge b'>Banc</span>") : "") + "</div>";
+  });
+  return h + "<button class='btn or' style='margin-top:10px;width:100%' data-a='start' " + (S.sel.length ? "" : "disabled") + ">Démarrer la saisie</button>";
+}
+function vGrid() {
+  const c = S.cur, set = c.sets[c.sets.length - 1], n = c.court.length;
+  let h = "<div class='bar'><span class='tag'>" + (c.mode === "match" ? "MATCH" + (c.opp ? " · " + esc(c.opp.toUpperCase()) : "") + " · " + LOC(c.loc).toUpperCase() + " · SET " + c.sets.length + " · À " + target(c) : "ENTRAÎNEMENT") + "</span>";
+  if (c.mode === "match") h += "<div class='score'><span class='l'>NOUS</span><button data-a='sc' data-side='0' data-d='-1'>−</button><span class='n'>" + set[0] + "</span><button data-a='sc' data-side='0' data-d='1'>+</button><span class='n'>:</span><button data-a='sc' data-side='1' data-d='-1'>−</button><span class='n'>" + set[1] + "</span><button data-a='sc' data-side='1' data-d='1'>+</button><span class='l'>EUX</span></div><button class='btn gh' data-a='nset'>Set suivant</button>";
+  h += "<span class='sp'></span><button class='btn gh' data-a='undo' " + (c.acts.length ? "" : "disabled") + ">↶ Annuler</button>" + (c.mode === "match" ? "<button class='btn gh' data-a='intr'>⏱ Interrompre</button>" : "") + "<button class='btn gh' data-a='restart' title='Recommencer à zéro'>↻ Recommencer</button><button class='btn gh' data-a='drop' title='Abandonner sans enregistrer'>✕</button><button class='btn or' data-a='end'>Terminer</button></div>";
+  h += "<div class='grid' style='grid-template-columns:110px repeat(" + n + ",1fr) 96px'><div></div>";
+  c.court.forEach((pid, i) => h += "<button class='hd' data-a='sub' data-i='" + i + "'>" + esc(nm(pid)) + " ⇄</button>");
+  h += "<div class='hd t'>ÉQUIPE</div>";
+  FUND.forEach(f => {
+    h += "<div class='fl'>" + f[1] + "</div>";
+    c.court.forEach(pid => {
+      const k = cnt(c.acts, pid, f[0]), p = pct(k);
+      h += "<div class='cell'><div class='cnt'>" + fmt(k) + (p !== null ? "<b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</div><div class='bt'><button class='ok' data-a='log' data-p='" + pid + "' data-f='" + f[0] + "' data-r='ok'>✓</button><button class='ko' data-a='log' data-p='" + pid + "' data-f='" + f[0] + "' data-r='ko'>✗</button></div></div>";
+    });
+    const k = cnt(c.acts, null, f[0]), p = pct(k);
+    h += "<div class='cell team'><div class='cnt'>" + fmt(k) + (p !== null ? "<b class='" + pc(p) + "'>" + p + "%</b>" : "") + "</div></div>";
+  });
+  h += "</div>";
+  if (S.sub !== null) {
+    h += "<div class='modal'><div class='box'><h3>Remplacer " + esc(nm(c.court[S.sub])) + "</h3><p>Choisis la joueuse qui entre.</p>";
+    const cand = S.roster.filter(p => !c.court.includes(p.id));
+    if (!cand.length) h += "<p>Aucune autre joueuse dans l’effectif : ajoute-la dans l’onglet Équipe.</p>";
+    cand.forEach(p => h += "<div class='chip' data-a='swap' data-id='" + p.id + "'><span>" + esc(p.name) + "</span>" + (c.bench.includes(p.id) ? "<span class='badge b'>Banc</span>" : "") + "</div>");
+    h += "<button class='btn gh' style='width:100%' data-a='subx'>Annuler</button></div></div>";
+  }
+  if (S.end) {
+    const x = c.sets[c.sets.length - 1], who = S.end.w === 0 ? "Nous" : (c.opp || "Eux");
+    h += "<div class='modal'><div class='box'><h3>" + (S.end.m ? "Match terminé" : "Set terminé") + "</h3><p>" + (S.end.m ? esc(resTxt(c)) + " · " + scoreTxt(c) + cpTxt(c) : esc(who) + " gagne le set " + x[0] + "-" + x[1]) + "</p><button class='btn or' style='width:100%;margin-bottom:8px' data-a='setok'>" + (S.end.m ? "Valider et enregistrer" : "Valider · set suivant") + "</button><button class='btn gh' style='width:100%;margin-bottom:8px' data-a='setx'>Pas encore</button><button class='btn gh' style='width:100%' data-a='setskip'>Ne plus demander pour ce set</button></div></div>";
+  }
+  if (S.intr) {
+    const v = avgResult(c);
+    h += "<div class='modal'><div class='box'><h3>Match interrompu</h3><p>Fermeture du gymnase : comment conclure ?</p>" +
+      "<button class='btn gh' style='width:100%;margin-bottom:8px;text-align:left' data-a='irep'>Rejouer le dernier set à une autre date<small>Le match est enregistré « à rejouer » et se reprend plus tard.</small></button>" +
+      "<button class='btn or' style='width:100%;margin-bottom:8px;text-align:left' data-a='iavg' " + (v.err ? "disabled" : "") + ">Set average<small>" + esc(v.msg) + "</small></button>" +
+      "<button class='btn gh' style='width:100%' data-a='intrx'>Annuler</button></div></div>";
+  }
+  return h;
+}
+function vHisto() {
+  if (!S.sessions.length) return "<p class='empty'>Aucune séance enregistrée.</p>";
+  return S.sessions.map(ss => {
+    let h = "<div class='hist'><div data-a='open' data-id='" + ss.id + "'><div class='top'><b>" + day(ss.mdate || ss.date) + "</b><span class='tag'>" + (ss.mode === "match" ? "MATCH" : "ENTRAÎNEMENT") + "</span></div><div class='meta'>" + (ss.mode === "match" ? esc(ttl(ss)) + " · " + resTxt(ss) + " · Sets : " + scoreTxt(ss) + cpTxt(ss) + " · " : "") + players(ss).length + " joueuses · " + ss.acts.length + " actions</div></div>";
+    if (S.open === ss.id) h += "<div style='margin-top:12px;overflow-x:auto'>" + summary(ss) + "</div><div class='acts'><button class='btn or' data-a='share' data-id='" + ss.id + "'>Partager / copier</button><button class='btn gh' data-a='csv' data-id='" + ss.id + "'>Export CSV</button><button class='btn gh' data-a='resume' data-id='" + ss.id + "'>" + (ss.res && ss.res.kind === "replay" ? "Reprendre pour rejouer le set" : "Reprendre la saisie") + "</button><button class='btn gh' style='color:var(--ko)' data-a='del' data-id='" + ss.id + "'>Supprimer</button></div>";
+    return h + "</div>";
+  }).join("");
+}
+function render() {
+  const nav = [["saisie","Saisie"],["equipe","Équipe"],["histo","Historique"]];
+  $("app").innerHTML = "<header><div class='brand'>STATS<span>·</span>VOLLEY</div><nav>" + nav.map(n => "<button class='" + (S.view === n[0] ? "on" : "") + "' data-a='nav' data-v='" + n[0] + "'>" + n[1] + "</button>").join("") + "</nav></header><main>" +
+    (S.view === "equipe" ? vEquipe() : S.view === "histo" ? vHisto() : S.cur ? vGrid() : vSetup()) + "</main>";
+}
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-a]");
+  if (el) act(el.dataset.a, el.dataset);
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "np") act("addp", {}); });
+document.addEventListener("input", e => { if (e.target.id === "opp") S.m.opp = e.target.value; else if (e.target.id === "md") S.m.date = e.target.value; else if (e.target.id === "rp") S.m.rules.pts = e.target.value; else if (e.target.id === "rd") S.m.rules.dec = e.target.value; });
+load(); render();
+</script>
+</body>
+</html>
